@@ -1,7 +1,7 @@
-const Post = require("../models/Post");
-const sharp = require("sharp");
-const path = require("path");
-const fs = require("fs");
+const Post = require('../models/Post');
+const sharp = require('sharp');
+const path = require('path');
+const fs = require('fs');
 
 class PostController {
   async index(req, res) {
@@ -9,12 +9,12 @@ class PostController {
       if (req.params.id) {
         const post = await Post.findById(req.params.id);
 
-        if (!post) throw Error("Post not exists.");
+        if (!post) throw Error('Post not exists.');
 
         return res.send(post);
       }
 
-      const posts = await Post.find().sort("-createdAt");
+      const posts = await Post.find().sort('-createdAt');
       return res.send(posts);
     } catch (e) {
       return res.status(400).send({
@@ -25,13 +25,13 @@ class PostController {
   }
 
   async store(req, res) {
-    const replaceExtension = text => text.replace(/.png|.jpeg|.gif/i, ".jpg");
+    const replaceExtension = text => text.replace(/.png|.jpeg|.gif/i, '.jpg');
 
     try {
-      if (!req.body.author) throw Error("Author é obrigatório.");
-      if (!req.body.place) throw Error("Place é obrigatório.");
-      if (!req.body.description) throw Error("Descrição é obrigatório.");
-      if (!req.file.originalname) throw Error("Imagem é obrigatório.");
+      if (!req.body.author) throw Error('Author é obrigatório.');
+      if (!req.body.place) throw Error('Place é obrigatório.');
+      if (!req.body.description) throw Error('Descrição é obrigatório.');
+      if (!req.file) throw Error('Imagem é obrigatório.');
 
       // Resized image
       await sharp(req.file.path)
@@ -46,7 +46,7 @@ class PostController {
         image: replaceExtension(req.file.hash)
       });
 
-      req.io.emit("post", post);
+      req.io.emit('post', post);
 
       return res.send(post);
     } catch (e) {
@@ -61,9 +61,9 @@ class PostController {
     try {
       const post = await Post.findById(req.params.id);
 
-      if (!post) throw Error("Post not exists.");
+      if (!post) throw Error('Post not exists.');
 
-      const image = path.resolve(__dirname, "..", "..", "uploads", post.image);
+      const image = path.resolve(__dirname, '..', '..', 'uploads', post.image);
 
       await fs.access(image, err => {
         if (!err) {
@@ -73,7 +73,7 @@ class PostController {
 
       await post.delete();
 
-      req.io.emit("delete", post);
+      req.io.emit('delete', post);
 
       return res.send(post);
     } catch (e) {
@@ -88,12 +88,12 @@ class PostController {
     try {
       const post = await Post.findById(req.params.id);
 
-      if (!post) throw Error("Post not exists.");
+      if (!post) throw Error('Post not exists.');
 
       post.likes += 1;
       await post.save();
 
-      req.io.emit("like", post);
+      req.io.emit('like', post);
 
       return res.send(post);
     } catch (e) {
