@@ -103,6 +103,32 @@ class PostController {
       });
     }
   }
+
+  async clear(req, res) {
+    const posts = await Post.find();
+
+    if (posts) {
+      posts.forEach(async post => {
+        const image = path.resolve(
+          __dirname,
+          '..',
+          '..',
+          'uploads',
+          post.image
+        );
+
+        await fs.access(image, err => {
+          if (!err) {
+            fs.unlinkSync(image);
+          }
+        });
+
+        await post.delete();
+      });
+    }
+
+    return res.send({ success: true });
+  }
 }
 
 module.exports = new PostController();
