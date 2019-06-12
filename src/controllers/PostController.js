@@ -1,4 +1,5 @@
 const Post = require("../models/Post");
+const sharp = require("sharp");
 const path = require("path");
 const fs = require("fs");
 
@@ -24,15 +25,25 @@ class PostController {
   }
 
   async store(req, res) {
+    const replaceExtension = text => text.replace(/.png|.jpeg|.gif/i, ".jpg");
+
     try {
       if (!req.body.author) throw Error("Author é obrigatório.");
       if (!req.body.place) throw Error("Place é obrigatório.");
       if (!req.body.description) throw Error("Descrição é obrigatório.");
       if (!req.file.originalname) throw Error("Imagem é obrigatório.");
 
+      // Resized image
+      await sharp(req.file.path)
+        .resize(500)
+        .jpeg({ quality: 70 })
+        .toFile(replaceExtension(req.file.path));
+
+      fs.unlinkSync(req.file.path);
+
       const post = await Post.create({
         ...req.body,
-        image: req.file.hash
+        image: replaceExtension(req.file.hash)
       });
 
       req.io.emit("post", post);
