@@ -9,7 +9,9 @@ class PostController {
       if (req.params.id) {
         const post = await Post.findById(req.params.id);
 
-        if (!post) throw Error('Post not exists.');
+        if (!post) {
+          throw Error('Post not exists.');
+        }
 
         return res.send(post);
       }
@@ -19,31 +21,48 @@ class PostController {
     } catch (e) {
       return res.status(400).send({
         error: true,
-        message: e.message
+        message: e.message,
       });
     }
   }
 
   async store(req, res) {
-    const replaceExtension = text => text.replace(/.png|.jpeg|.gif/i, '.jpg');
+    const replaceExtension = text => text.replace(/.png|.jpeg|.gif|.jpg/i, 'resize.jpg');
 
     try {
-      if (!req.body.author) throw Error('Author é obrigatório.');
-      if (!req.body.place) throw Error('Place é obrigatório.');
-      if (!req.body.description) throw Error('Descrição é obrigatório.');
-      if (!req.file) throw Error('Imagem é obrigatório.');
+      if (!req.body.author) {
+        throw Error('Author é obrigatório.');
+      }
+
+      if (!req.body.place) {
+        throw Error('Place é obrigatório.');
+      }
+
+      if (!req.body.description) {
+        throw Error('Descrição é obrigatório.');
+      }
+
+      if (!req.file) {
+        throw Error('Imagem é obrigatório.');
+      }
+
+      console.log(req.file);
 
       // Resized image
       await sharp(req.file.path)
         .resize(500)
         .jpeg({ quality: 70 })
-        .toFile(replaceExtension(req.file.path));
+        .toFile(
+          replaceExtension(req.file.path),
+        );
 
       fs.unlinkSync(req.file.path);
 
       const post = await Post.create({
         ...req.body,
-        image: replaceExtension(req.file.hash)
+        image: replaceExtension(
+          req.file.hash,
+        ),
       });
 
       req.io.emit('post', post);
@@ -52,7 +71,7 @@ class PostController {
     } catch (e) {
       return res.status(400).send({
         error: true,
-        message: e.message
+        message: e.message,
       });
     }
   }
@@ -61,7 +80,9 @@ class PostController {
     try {
       const post = await Post.findById(req.params.id);
 
-      if (!post) throw Error('Post not exists.');
+      if (!post) {
+        throw Error('Post not exists.');
+      }
 
       const image = path.resolve(__dirname, '..', '..', 'uploads', post.image);
 
@@ -79,7 +100,7 @@ class PostController {
     } catch (e) {
       return res.status(400).send({
         error: true,
-        message: e.message
+        message: e.message,
       });
     }
   }
@@ -88,7 +109,9 @@ class PostController {
     try {
       const post = await Post.findById(req.params.id);
 
-      if (!post) throw Error('Post not exists.');
+      if (!post) {
+        throw Error('Post not exists.');
+      }
 
       post.likes += 1;
       await post.save();
@@ -99,7 +122,7 @@ class PostController {
     } catch (e) {
       return res.status(400).send({
         error: true,
-        message: e.message
+        message: e.message,
       });
     }
   }
@@ -114,7 +137,7 @@ class PostController {
           '..',
           '..',
           'uploads',
-          post.image
+          post.image,
         );
 
         await fs.access(image, err => {
